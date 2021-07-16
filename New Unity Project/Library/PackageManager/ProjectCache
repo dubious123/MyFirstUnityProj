@@ -5,16 +5,16 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 637618507933306372
-    m_Hash: 1222230867
+      ticks: 637618604655479830
+    m_Hash: 347029463
   m_LockFileStatus:
     m_FilePath: "C:/Users/\uD55C\uC885\uD6C8/Desktop/MyFirstUnityProj/New Unity Project/Packages/packages-lock.json"
     m_PathExists: 1
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 637618507933446013
-    m_Hash: 3220943383
+      ticks: 637618604694246827
+    m_Hash: 3686595426
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
 m_PackageAssets:
@@ -78,6 +78,7 @@ m_PackageAssets:
         compatible:
         - 1.5.7
         - 1.6.0
+        - 1.7.1
         - 2.0.0-preview.6
         - 2.0.0-preview.8
         - 2.0.0-preview.15
@@ -206,7 +207,7 @@ m_PackageAssets:
         version: 1.1.1
       resolvedDependencies:
       - name: com.unity.test-framework
-        version: 1.1.26
+        version: 1.1.27
       - name: com.unity.ext.nunit
         version: 1.0.6
       - name: com.unity.modules.imgui
@@ -294,7 +295,7 @@ m_PackageAssets:
         version: 1.1.9
       resolvedDependencies:
       - name: com.unity.test-framework
-        version: 1.1.26
+        version: 1.1.27
       - name: com.unity.ext.nunit
         version: 1.0.6
       - name: com.unity.modules.imgui
@@ -392,13 +393,13 @@ m_PackageAssets:
         url: https://github.cds.internal.unity3d.com/unity/com.unity.ide.vscode.git
         revision: b5ec9b38109e52b1b26597d521e4df75e042ebb9
         path: 
-    - packageId: com.unity.test-framework@1.1.26
+    - packageId: com.unity.test-framework@1.1.27
       testable: 0
       isDirectDependency: 1
-      version: 1.1.26
+      version: 1.1.27
       source: 1
       resolvedPath: "C:\\Users\\\uD55C\uC885\uD6C8\\Desktop\\MyFirstUnityProj\\New
-        Unity Project\\Library\\PackageCache\\com.unity.test-framework@1.1.26"
+        Unity Project\\Library\\PackageCache\\com.unity.test-framework@1.1.27"
       assetPath: Packages/com.unity.test-framework
       name: com.unity.test-framework
       displayName: Test Framework
@@ -444,7 +445,6 @@ m_PackageAssets:
         - 1.1.26
         - 1.1.27
         compatible:
-        - 1.1.26
         - 1.1.27
         verified: 1.1.27
       dependencies:
@@ -476,13 +476,13 @@ m_PackageAssets:
       entitlements:
         isAllowed: 1
       isAssetStorePackage: 0
-      datePublishedTicks: 637576439750000000
+      datePublishedTicks: 637594751620000000
       documentationUrl: 
       hasRepository: 1
       repository:
         type: git
         url: git+https://github.com/Unity-Technologies/com.unity.test-framework.git
-        revision: ea9d07e64e6d63c4f2fd8b6bc57df0f452ff4fae
+        revision: c2f2cc9b7ea61d42964257363595dff5e8c47c42
         path: 
     - packageId: com.unity.textmeshpro@3.0.6
       testable: 0
@@ -2770,4 +2770,4 @@ m_PackageAssets:
   m_LocalPackages:
     m_LocalFileStatus: []
 m_ProjectPath: "C:/Users/\uD55C\uC885\uD6C8/Desktop/MyFirstUnityProj/New Unity Project/Packages"
-m_EditorVersion: 2020.3.13f1 (71691879b7f5)
+m_EditorVersion: 2020.3.14f1 (d0d1bb862f9d)
