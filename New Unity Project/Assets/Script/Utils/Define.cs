@@ -13,4 +13,10 @@ public class Define
     {
         QuaterView,
     }
+    public enum UIEvent
+    {
+        Click,
+        Drag,
+
+    }
 }
