@@ -9,13 +9,10 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField]
     private float _speed = 10.0f;
-    bool _moveToDest = false;
     Vector3 _destPos;
     void Start()
     {
         //방향벡터 : 거리, 방향
-        Managers.Input.KeyAction -= OnKeyboard;
-        Managers.Input.KeyAction += OnKeyboard;
         Managers.Input.MouseAction -= OnMouseClicked;
         Managers.Input.MouseAction += OnMouseClicked;
     }
@@ -26,13 +23,17 @@ public class PlayerController : MonoBehaviour
         /*Debug.Log( Input.mousePosition);*/ //스크린 좌표
                                              //Debug.Log(Camera.main.ScreenToViewportPoint(Input.mousePosition)); //ViewPoint
 
+        if(_state == PlayerState.Die)
+        {
+            return;
+        }
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
         if (Physics.Raycast(ray, out RaycastHit hit, 100.0f, LayerMask.GetMask("Wall")))
         {
             _destPos = hit.point;
-            _moveToDest = true;
+            _state= PlayerState.Moving;
         }
         
         //Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane));
@@ -47,39 +48,45 @@ public class PlayerController : MonoBehaviour
     }
 
     float _yAngle = 0.0f;
-    private void OnKeyboard()
+
+
+
+    enum PlayerState
     {
-        if (Input.GetKey(KeyCode.W))
-        {
-            //transform.rotation = Quaternion.LookRotation(Vector3.forward);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.1f);
-            transform.position += Vector3.forward * Time.deltaTime * _speed;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            //transform.rotation = Quaternion.LookRotation(Vector3.back);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.1f);
-            transform.position += Vector3.back * Time.deltaTime * _speed;
+        Die,
+        Moving,
+        Idle,
+    }
+    PlayerState _state = PlayerState.Idle;
+    void UpdateIdle()
+    {
+        //애니메이션
+        Animator anim = GetComponent<Animator>();
+        //게임 상태에 대한 정보를 넘겨준다
+        anim.SetFloat("speed",0);
+    }
+    void UpdateDie()
+    {
 
-        }
-        if (Input.GetKey(KeyCode.A))
+    }
+    void UpdateMoving()
+    {
+        Vector3 dir = _destPos - transform.position;
+        if (dir.magnitude < 0.000001f)
         {
+            _state = PlayerState.Idle;
+        }
+        else
+        {
+            transform.position += dir.normalized * Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
 
-            //transform.rotation = Quaternion.LookRotation(Vector3.left);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.1f);
-            transform.position += Vector3.left * Time.deltaTime * _speed;
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
         }
-        if (Input.GetKey(KeyCode.D))
-        {
-            //transform.rotation = Quaternion.LookRotation(Vector3.right);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.1f);
-            transform.position += Vector3.right * Time.deltaTime * _speed;
-        }
-        _moveToDest = false;
+        //애니메이션
+        Animator anim = GetComponent<Animator>();
+        anim.SetFloat("speed",_speed);
     }
 
-
-    float wait_run_ratio;
     void Update()
     {
         _yAngle += Time.deltaTime * 100.0f;
@@ -100,35 +107,21 @@ public class PlayerController : MonoBehaviour
         //TransformDirection
         //world -> local
         //InverseTransformDirection
-
-        if (_moveToDest)
+        switch (_state)
         {
+            case PlayerState.Idle:
+                UpdateIdle();
+                break;
+            case PlayerState.Die:
+                UpdateDie();
+                break;
+            case PlayerState.Moving:
+                UpdateMoving();
+                break;
+            default:
+                break;
+        }
 
-            Vector3 dir = _destPos - transform.position;
-            if(dir.magnitude < 0.000001f)
-            {
-                _moveToDest = false;
-            }
-            else
-            {
-                transform.position += dir.normalized * Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
 
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
-            }
-        }
-        if (_moveToDest)
-        {
-            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
-            Animator anim = GetComponent<Animator>();
-            anim.SetFloat("wait_run_ratio", wait_run_ratio);
-            anim.Play("WAIT_RUN");
-        }
-        else
-        {
-            wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
-            Animator anim = GetComponent<Animator>();
-            anim.SetFloat("wait_run_ratio", wait_run_ratio);
-            anim.Play("WAIT_RUN");
-        }
     }
 }
