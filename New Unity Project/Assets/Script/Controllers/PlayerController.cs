@@ -15,6 +15,10 @@ public class PlayerController : MonoBehaviour
         //방향벡터 : 거리, 방향
         Managers.Input.MouseAction -= OnMouseClicked;
         Managers.Input.MouseAction += OnMouseClicked;
+
+        //Temp
+        UI_Button ui = Managers.UI.ShowPopupUI<UI_Button>();
+        Managers.UI.ClosePopupUI(ui);
     }
 
     private void OnMouseClicked(Define.MouseEvent evt)
