@@ -10,9 +10,13 @@ class Managers : MonoBehaviour
 
     private InputManager _input = new InputManager();
     private ResourceManager _resource = new ResourceManager();
+    private SceneManagerEx _scene = new SceneManagerEx();
+    private SoundManager _sound = new SoundManager();
     private UI_Manager _ui = new UI_Manager();
     public static InputManager Input { get { return Instance._input; } }
     public static ResourceManager Resource { get { return Instance._resource; } }
+    public static SceneManagerEx Scene { get { return Instance._scene; } }
+    public static SoundManager Sound { get { return Instance._sound; } }
     public static UI_Manager UI { get { return Instance._ui; } }
     void Start()
     {
@@ -35,6 +39,7 @@ class Managers : MonoBehaviour
             }
             DontDestroyOnLoad(go);
             s_Instance = go.GetComponent<Managers>();
+            s_Instance._sound.Init();
         }
     }
 }
