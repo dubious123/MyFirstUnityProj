@@ -9,6 +9,7 @@ public class LoginScene : BaseScene
     {
         base.Init();
         SceneType = Define.Scene.Loby;
+
     }
     public override void Clear()
     {

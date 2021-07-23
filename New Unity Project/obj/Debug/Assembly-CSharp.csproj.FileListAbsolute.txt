@@ -298,3 +298,5 @@ C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\obj\Debug\Assembly
 C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\obj\Debug\Assembly-CSharp.csproj.CopyComplete
 C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\obj\Debug\Assembly-CSharp.dll
 C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\obj\Debug\Assembly-CSharp.pdb
+C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\Temp\Bin\Debug\Unity.2D.Sprite.Editor.dll
+C:\Users\한종훈\Desktop\MyFirstUnityProj\New Unity Project\Temp\Bin\Debug\Unity.2D.Sprite.Editor.pdb
