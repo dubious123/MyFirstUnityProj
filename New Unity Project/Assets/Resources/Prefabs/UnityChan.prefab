@@ -5135,6 +5135,7 @@ GameObject:
   - component: {fileID: 2211057613198874630}
   - component: {fileID: 8019949004679818150}
   - component: {fileID: 8019949004679818149}
+  - component: {fileID: -8198778887890593830}
   m_Layer: 0
   m_Name: unitychan
   m_TagString: Untagged
@@ -5233,6 +5234,26 @@ CapsuleCollider:
   m_Height: 1.5208972
   m_Direction: 1
   m_Center: {x: 0, y: 0.72149026, z: 0}
+--- !u!114 &-8198778887890593830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8019949004679818146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 764469de515b9314eaf11defaa5b704a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _level: 0
+  _hp: 0
+  _maxHp: 0
+  _attack: 0
+  _defense: 0
+  _speed: 0
+  _exp: 0
+  _gold: 0
 --- !u!1 &8019949004710331176
 GameObject:
   m_ObjectHideFlags: 0

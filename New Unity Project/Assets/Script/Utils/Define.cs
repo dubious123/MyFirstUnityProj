@@ -4,7 +4,13 @@ using UnityEngine;
 
 public class Define
 {
+    public enum Layer
+    {
+        Monster = 6,
+        Ground = 7,
+        Block = 8,
 
+    }
     public enum Scene
     {
         Unknown,
@@ -21,6 +27,8 @@ public class Define
     public enum MouseEvent
     {
         Press,
+        PointerDown,
+        PointerUp,
         Click,
     }
     public enum CameraMode
