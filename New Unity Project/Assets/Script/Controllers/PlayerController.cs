@@ -8,31 +8,54 @@ using UnityEngine.AI;
 //2. 방향벡터
 public class PlayerController : MonoBehaviour
 {
-    PlayerStat _stat;
-    Vector3 _destPos;
-    void Start()
+    public enum PlayerState
     {
-
-        _stat = gameObject.GetComponent<PlayerStat>();
-        //방향벡터 : 거리, 방향
-        Managers.Input.MouseAction -= OnMouseEvent;
-        Managers.Input.MouseAction += OnMouseEvent;
-
-
+        Die,
+        Moving,
+        Idle,
+        Skill,
     }
     int _mask = (1 << (int)Define.Layer.Ground | 1 << (int)Define.Layer.Monster);
 
+    PlayerStat _stat;
+    Vector3 _destPos;
+    [SerializeField]
+    PlayerState _state = PlayerState.Idle;
     GameObject _lockTarget;
+
+
+    bool _stopSkill = false;
     private void OnMouseEvent(Define.MouseEvent evt)
     {
         //World좌표계 <-> Local 좌표계 <-> ViewPort 좌표계 <-> Screen 좌표계
         /*Debug.Log( Input.mousePosition);*/ //스크린 좌표
                                              //Debug.Log(Camera.main.ScreenToViewportPoint(Input.mousePosition)); //ViewPoint
 
-        if(_state == PlayerState.Die)
+        switch (State)
         {
-            return;
+            case PlayerState.Moving:
+                OnMouseEvent_IdleRun(evt);
+                break;
+            case PlayerState.Idle:
+                OnMouseEvent_IdleRun(evt);
+                break;
+            case PlayerState.Skill:
+                {
+                    if(evt == Define.MouseEvent.PointerUp)
+                    {
+                        _stopSkill = true;
+                    }
+                }
+                break;
+            default:
+                break;
+
         }
+
+    }
+
+    void OnMouseEvent_IdleRun(Define.MouseEvent evt)
+    {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         bool raycastHit = Physics.Raycast(ray, out RaycastHit hit, 100.0f, _mask);
         switch (evt)
@@ -42,7 +65,8 @@ public class PlayerController : MonoBehaviour
                     if (raycastHit)
                     {
                         _destPos = hit.point;
-                        _state = PlayerState.Moving;
+                        State = PlayerState.Moving;
+                        _stopSkill = false;
                         if (hit.collider.gameObject.layer == (int)Define.Layer.Monster)
                         {
                             _lockTarget = hit.collider.gameObject;
@@ -56,34 +80,23 @@ public class PlayerController : MonoBehaviour
                 break;
             case Define.MouseEvent.Press:
                 {
-                    if(_lockTarget != null)
-                    {
-                        _destPos = _lockTarget.transform.position;
-                    }
-                    else if (raycastHit)
+                    if (_lockTarget == null && raycastHit)
                     {
                         _destPos = hit.point;
                     }
                 }
+                break;
+            case Define.MouseEvent.PointerUp:
+                _stopSkill = true;
                 break;
             default:
                 break;
         }
     }
 
-    float _yAngle = 0.0f;
 
 
 
-    enum PlayerState
-    {
-        Die,
-        Moving,
-        Idle,
-        Skill,
-    }
-    [SerializeField]
-    PlayerState _state = PlayerState.Idle;
 
     public PlayerState State
     {
@@ -97,10 +110,13 @@ public class PlayerController : MonoBehaviour
                 case PlayerState.Die:
                     break;
                 case PlayerState.Moving:
+                    anim.CrossFade("RUN", 0.1f);
                     break;
                 case PlayerState.Idle:
+                    anim.CrossFade("WAIT", 0.1f);
                     break;
                 case PlayerState.Skill:
+                    anim.CrossFade("ATTACK", 0.1f, -1, 0);
                     break;
                 default:
                     break;
@@ -109,12 +125,22 @@ public class PlayerController : MonoBehaviour
 
         }
     }
+    void Start()
+    {
+
+        _stat = gameObject.GetComponent<PlayerStat>();
+        //방향벡터 : 거리, 방향
+        Managers.Input.MouseAction -= OnMouseEvent;
+        Managers.Input.MouseAction += OnMouseEvent;
+
+        Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
+    }
+
     void UpdateIdle()
     {
         //애니메이션
         Animator anim = GetComponent<Animator>();
         //게임 상태에 대한 정보를 넘겨준다
-        anim.SetFloat("speed",0);
     }
     void UpdateDie()
     {
@@ -124,17 +150,18 @@ public class PlayerController : MonoBehaviour
     {
         if(_lockTarget != null)
         {
+            _destPos = _lockTarget.transform.position;
             float distance = (_destPos - transform.position).magnitude;
             if(distance <= 1)
             {
-                _state = PlayerState.Skill;
+                State = PlayerState.Skill;
                 return;
             }
         }
         Vector3 dir = _destPos - transform.position;
         if (dir.magnitude < 0.01f)
         {
-            _state = PlayerState.Idle;
+            State = PlayerState.Idle;
         }
         else
         {
@@ -148,35 +175,46 @@ public class PlayerController : MonoBehaviour
             {
                 if (Input.GetMouseButton(0) == true)
                 {
-                    _state = PlayerState.Moving;
-                    return;
+                    State = PlayerState.Idle;
                 }
-                _state = PlayerState.Idle;
                 return;
             }
-
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
         }
         //애니메이션
-        Animator anim = GetComponent<Animator>();
-        anim.SetFloat("speed", _stat.MoveSpeed);
     }
     void UpdateSkill()
     {
-        Animator anim = gameObject.GetComponent<Animator>();
-        anim.SetBool("attack", true);
+        if(_lockTarget != null)
+        {
+            Vector3 dir = _lockTarget.transform.position - transform.position;
+            Quaternion quat = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Lerp(transform.rotation, quat, 20 * Time.deltaTime);
+        }
     }
 
     void OnHitEvent()
     {
-        Debug.Log("OnHitEvent");
-        Animator anim = gameObject.GetComponent<Animator>();
-        anim.SetBool("attack", false);
-        _state = PlayerState.Idle;
+        if(_lockTarget != null)
+        {
+            Stat targetStat = _lockTarget.GetComponent<Stat>();
+            Stat myStat = gameObject.GetComponent<PlayerStat>();
+            int damage = Mathf.Max(0, myStat.Attack - targetStat.Defense);
+            Debug.Log(damage);
+            targetStat.Hp -= damage;
+        }
+        if (_stopSkill)
+        {
+            State = PlayerState.Idle;
+        }
+        else
+        {
+            State = PlayerState.Skill;
+        }
+
     }
     void Update()
     {
-        _yAngle += Time.deltaTime * 100.0f;
         //절대 회전값
         //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
         //+-delta
@@ -194,7 +232,7 @@ public class PlayerController : MonoBehaviour
         //TransformDirection
         //world -> local
         //InverseTransformDirection
-        switch (_state)
+        switch (State)
         {
             case PlayerState.Idle:
                 UpdateIdle();

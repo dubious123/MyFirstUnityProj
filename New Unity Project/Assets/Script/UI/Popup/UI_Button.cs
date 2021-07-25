@@ -33,10 +33,6 @@ public class UI_Button : UI_Popup
         Get<Text>((int)Texts.ScoreText).text = $"Á¡¼ö : {_score}";
     }
 
-    private void Start()
-    {
-        Init();
-    }
     public override void Init()
     {
         base.Init();
