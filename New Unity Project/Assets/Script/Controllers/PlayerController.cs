@@ -6,23 +6,11 @@ using UnityEngine.AI;
 
 //1. 위치벡터
 //2. 방향벡터
-public class PlayerController : MonoBehaviour
+public class PlayerController : BaseController
 {
-    public enum PlayerState
-    {
-        Die,
-        Moving,
-        Idle,
-        Skill,
-    }
     int _mask = (1 << (int)Define.Layer.Ground | 1 << (int)Define.Layer.Monster);
 
     PlayerStat _stat;
-    Vector3 _destPos;
-    [SerializeField]
-    PlayerState _state = PlayerState.Idle;
-    GameObject _lockTarget;
-
 
     bool _stopSkill = false;
     private void OnMouseEvent(Define.MouseEvent evt)
@@ -33,13 +21,13 @@ public class PlayerController : MonoBehaviour
 
         switch (State)
         {
-            case PlayerState.Moving:
+            case Define.State.Moving:
                 OnMouseEvent_IdleRun(evt);
                 break;
-            case PlayerState.Idle:
+            case Define.State.Idle:
                 OnMouseEvent_IdleRun(evt);
                 break;
-            case PlayerState.Skill:
+            case Define.State.Skill:
                 {
                     if(evt == Define.MouseEvent.PointerUp)
                     {
@@ -53,7 +41,6 @@ public class PlayerController : MonoBehaviour
         }
 
     }
-
     void OnMouseEvent_IdleRun(Define.MouseEvent evt)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -65,7 +52,7 @@ public class PlayerController : MonoBehaviour
                     if (raycastHit)
                     {
                         _destPos = hit.point;
-                        State = PlayerState.Moving;
+                        State = Define.State.Moving;
                         _stopSkill = false;
                         if (hit.collider.gameObject.layer == (int)Define.Layer.Monster)
                         {
@@ -93,60 +80,37 @@ public class PlayerController : MonoBehaviour
                 break;
         }
     }
-
-
-
-
-
-    public PlayerState State
+    void OnHitEvent()
     {
-        get { return _state; }
-        set
+        if (_lockTarget != null)
         {
-            _state = value;
-            Animator anim = gameObject.GetComponent<Animator>();
-            switch (_state)
-            {
-                case PlayerState.Die:
-                    break;
-                case PlayerState.Moving:
-                    anim.CrossFade("RUN", 0.1f);
-                    break;
-                case PlayerState.Idle:
-                    anim.CrossFade("WAIT", 0.1f);
-                    break;
-                case PlayerState.Skill:
-                    anim.CrossFade("ATTACK", 0.1f, -1, 0);
-                    break;
-                default:
-                    break;
-
-            }
-
+            Stat targetStat = _lockTarget.GetComponent<Stat>();
+            targetStat.OnAttacked(_stat);
         }
-    }
-    void Start()
-    {
+        if (_stopSkill)
+        {
+            State = Define.State.Idle;
+        }
+        else
+        {
+            State = Define.State.Skill;
+        }
 
+    }
+    public override void Init()
+    {
+        worldObjectType = Define.WorldObject.Player;
         _stat = gameObject.GetComponent<PlayerStat>();
         //방향벡터 : 거리, 방향
         Managers.Input.MouseAction -= OnMouseEvent;
         Managers.Input.MouseAction += OnMouseEvent;
 
-        Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
+        if (gameObject.GetComponentInChildren<UI_HPBar>() == null)
+        {
+            Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
+        }
     }
-
-    void UpdateIdle()
-    {
-        //애니메이션
-        Animator anim = GetComponent<Animator>();
-        //게임 상태에 대한 정보를 넘겨준다
-    }
-    void UpdateDie()
-    {
-
-    }
-    void UpdateMoving()
+    protected override void UpdateMoving()
     {
         if(_lockTarget != null)
         {
@@ -154,36 +118,34 @@ public class PlayerController : MonoBehaviour
             float distance = (_destPos - transform.position).magnitude;
             if(distance <= 1)
             {
-                State = PlayerState.Skill;
+                State = Define.State.Skill;
                 return;
             }
         }
         Vector3 dir = _destPos - transform.position;
+        dir.y = 0;
         if (dir.magnitude < 0.01f)
         {
-            State = PlayerState.Idle;
+            State = Define.State.Idle;
         }
         else
         {
-            NavMeshAgent nma = gameObject.GetOrAddComponent<NavMeshAgent>();
-
-            //nma.CalculatePath
-            float moveDist = Mathf.Clamp(_stat.MoveSpeed * Time.deltaTime, 0, dir.magnitude);
-            nma.Move(dir.normalized * moveDist);
             Debug.DrawRay(transform.position, dir.normalized, Color.green);
             if(Physics.Raycast(transform.position + Vector3.up, dir, 1.0f, LayerMask.GetMask("Block")))
             {
                 if (Input.GetMouseButton(0) == true)
                 {
-                    State = PlayerState.Idle;
+                    State = Define.State.Idle;
                 }
                 return;
             }
+            float moveDist = Mathf.Clamp(_stat.MoveSpeed * Time.deltaTime, 0, dir.magnitude);
+            transform.position += dir.normalized * moveDist;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10 * Time.deltaTime);
         }
         //애니메이션
     }
-    void UpdateSkill()
+    protected override void UpdateSkill()
     {
         if(_lockTarget != null)
         {
@@ -193,63 +155,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnHitEvent()
-    {
-        if(_lockTarget != null)
-        {
-            Stat targetStat = _lockTarget.GetComponent<Stat>();
-            Stat myStat = gameObject.GetComponent<PlayerStat>();
-            int damage = Mathf.Max(0, myStat.Attack - targetStat.Defense);
-            Debug.Log(damage);
-            targetStat.Hp -= damage;
-        }
-        if (_stopSkill)
-        {
-            State = PlayerState.Idle;
-        }
-        else
-        {
-            State = PlayerState.Skill;
-        }
-
-    }
-    void Update()
-    {
-        //절대 회전값
-        //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
-        //+-delta
 
 
-        //회전 : eular  :  중간값 보관 이상하게됨, gimble lock(local 방향으로 돌리고 싶을 때),
-        //quaternion : (w, (x,y,z)) 형태, 벡터부분은 모두 허수 
-        //중간값도 이상한 변환을 통해 흔들림 없이 보존이 된다. (slerp)
-        //심지어 사원수를 사차원 벤터로도 표현 가능
-        //만능?
-        // transform.rotation : 반환값이 quaternion 사원수이다.
-        //transform.Rotate(new Vector3(0.0f, Time.deltaTime * 100.0f, 0.0f));
-        //transform.rotation = Quaternion.Euler(new Vector3(0.0f, _yAngle, 0.0f));
-        //local -> world
-        //TransformDirection
-        //world -> local
-        //InverseTransformDirection
-        switch (State)
-        {
-            case PlayerState.Idle:
-                UpdateIdle();
-                break;
-            case PlayerState.Die:
-                UpdateDie();
-                break;
-            case PlayerState.Moving:
-                UpdateMoving();
-                break;
-            case PlayerState.Skill:
-                UpdateSkill();
-                break;
-            default:
-                break;
-        }
 
 
-    }
+
 }
